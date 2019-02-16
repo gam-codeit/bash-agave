@@ -1,0 +1,48 @@
+#!/bin/bash 
+# script que sube un trabajo slurm con sbatch adaptado a las 
+# simulaciones de Comsol 5.x  INPUTCOMSOL
+# recibe como parametro el nombre del modelo a resolver con comsol5 batch 
+
+die() { echo -e "\e[01;31m$*\e[0" >&2 ; exit 1; } 
+
+MODELO=${1:?Error:No se especifico el modelo a resolver} 
+
+! test -d $HOME/logs && mkdir $HOME/logs 
+! test -d $HOME/output && mkdir $HOME/output 
+
+if ! test -f $MODELO 
+    then 
+    die "Error: $MODELO no existe el fichero o directorio" 
+    else 
+        if ! [ ${MODELO: -4} == ".mph" ] 
+            then 
+                die "Error: $MODELO no es un archivo valido" 
+        fi 
+fi
+
+modelFile=$(basename $MODELO) 
+
+read -p "Nodos a utilizar(2): " NN 
+read -p "Tareas por nodo(2): " TPN 
+read -p "Correo para notificacion(antgam95@gmail.com): " EMAIL 
+
+#EMAIL=${EMAIL:-antgam95@gmail.com} 
+
+#NN=${NN:-2} 
+
+#TPN=${TPN:-2} 
+
+echo 
+echo "Modelo: $MODELO" 
+echo "Numero de nodos: $NN" 
+echo "Tareas por nodo: $TPN" 
+read -p "¿Confirmar? (Y/N): " -n 1 -r ANS 
+echo 
+
+if [[ ! $ANS =~ ^[Yy]$ ]] 
+    then 
+    die "Ejecucion abortada" 
+fi 
+
+sbatch --job-name $modelFile -N ${NN:-2} --ntasks-per-node ${TPN:-2} \
+--mail-user ${EMAIL:-antgam95@gmail.com} /usr/local/sbin/slurmcomsol.sh $MODELO

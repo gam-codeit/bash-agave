@@ -1,0 +1,43 @@
+#!/bin/bash 
+#slurmcomsol.sh 
+#SBATCH --nodes=2 
+#SBATCH --cpus-per-task=2 
+#SBATCH --ntasks-per-node=3 
+#SBATCH --mem="8000" 
+#SBATCH --job-name= 
+#SBATCH --partition="all" 
+#SBATCH --mail-type=FAILED,END 
+#SBATCH --mail-user="antgam95@gmail.com" 
+#SBATCH --exclusive 
+#SBATCH -o slurm-%j.out 
+#SBATCH -e slurm-%j.err 
+#SBATCH --account="test"  
+
+MODELTOCOMPUTE=$1 
+#INPUTFILE= 
+OUTPUTFILE="$HOME/output/$1_solved.mph" 
+BATCHLOG="$HOME/logs/$1.log" 
+#RESULT="$HOME/$MODELTOCOMPUTE".dat 
+DATA="$HOME/output/stats.txt" 
+
+# COMSOL command
+
+comsol5 batch -mpibootstrap slurm -inputfile $MODELTOCOMPUTE -outputfile $OUTPUTFILE \ 
+-batchlog $BATCHLOG -alivetime 15 -prefermph -recover -mpidebug 10
+
+STATE=$? 
+
+if test $STATE -eq 0 
+then 
+    echo "" > $DATA 
+    elapsed=$(sacct -j $SLURM_JOB_ID --format Elapsed | sed -n '3,3 p') 
+    startTime=$(sacct -j $SLURM_JOB_ID --format Start | sed -n '3,3 p') 
+    userJob=$(sacct -j $SLURM_JOB_ID --format User | sed -n '3,3 p') 
+
+    echo "Fecha de inicio: ${startTime}" >> $DATA 
+    echo "Usuario: ${userJob}" >> $DATA 
+    echo "Duracion: ${elapsed}" >> $DATA 
+    #ENVIAR CORREO CON $DATA
+else 
+    echo "ERROR GRAVE" > error.txt 
+fi
