@@ -1,5 +1,6 @@
 #!/bin/bash
 #Gamboa2018
+#Install FlameMaster in all Agave's Compute nodes 
 bisonPath="/home/admin/packages/bison-devel-3.0.4-1.el7.x86_64.rpm"
 flexPath="/home/admin/packages/flex-devel-2.5.37-3.el7.x86_64.rpm"
 sundialsPath="/export/sundials-2.4.0"
